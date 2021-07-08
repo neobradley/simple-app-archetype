@@ -2,7 +2,7 @@ version: '3.8'
 services:
   simple-mysql:
     container_name: simple-mysql
-    image: docker.pkg.github.com/neobradley/simple-app-archetype/db:0.0.1
+    image: docker.pkg.github.com/neobradley/simple-app-archetype/db
     ports:
       - "3306:3306"
     networks:
@@ -23,7 +23,7 @@ services:
 
   simple-service:
     container_name: simple-service
-    image: docker.pkg.github.com/neobradley/simple-app-archetype/service:0.0.1
+    image: docker.pkg.github.com/neobradley/simple-app-archetype/service
     ports:
       - "8080:8080"
     networks:
@@ -43,7 +43,7 @@ services:
 
   simple-web:
     container_name: simple-web
-    image: docker.pkg.github.com/neobradley/simple-app-archetype/web:0.0.1
+    image: docker.pkg.github.com/neobradley/simple-app-archetype/web
     ports:
       - "80:80"
     networks:
