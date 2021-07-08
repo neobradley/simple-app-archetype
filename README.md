@@ -11,7 +11,7 @@
     - junit
 - 前端 (TBD)
 - MySQL 資料庫
-- Docker
+- Docker (Deploy to Github Package)
 - Github Action (CI)
 
 ## Github 設定
