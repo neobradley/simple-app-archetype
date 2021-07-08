@@ -1,0 +1,134 @@
+/** DECLARE VERSION */
+buildscript {
+    ext {
+        appVersion = '1.0.0'
+        dependencyManagementPluginVersion = '1.0.11.RELEASE'
+        // https://github.com/spring-gradle-plugins/dependency-management-plugin/tags
+        springBootVersion = '2.3.12.RELEASE' // https://github.com/spring-projects/spring-boot/tags
+        mybatisPlusVersion = '3.1.2' // customized, do not upgrade
+        servletApiVersion = '4.0.1' // https://mvnrepository.com/artifact/javax.servlet/javax.servlet-api
+        validatorVersion = '6.1.4.Final' // https://github.com/hibernate/hibernate-validator/tags
+        lombokVersion = '1.18.20' // https://github.com/rzwitserloot/lombok/tags
+        commonLangVersion = '3.12.0' // https://commons.apache.org/proper/commons-lang/changes-report.html
+        commonCodecVersion = '1.15' // https://commons.apache.org/proper/commons-codec/changes-report.html
+        springfoxVersion = '2.9.2' // https://github.com/springfox/springfox/tags
+        swaggerVersion = '1.5.22' // customized, do not upgrade
+        swaggerUIVersion = '1.9.3' // https://github.com/xiaoymin/swagger-bootstrap-ui/tags
+        jUnitVersion = '5.6.2' // https://github.com/junit-team/junit5/tags
+        springDocVersio = '1.5.9' // https://github.com/springdoc/springdoc-openapi/tags
+        jSoupVersion = '1.10.3' // customized, do not upgrade
+    }
+    repositories {
+        mavenLocal()
+        mavenCentral()
+    }
+    dependencies {
+        classpath "io.spring.gradle:dependency-management-plugin:${dependencyManagementPluginVersion}"
+        classpath "org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}"
+        classpath 'mysql:mysql-connector-java:8.0.25'
+    }
+}
+/** DECLARE DEPENDENCIES */
+def springBoot = "org.springframework.boot:spring-boot-starter:${springBootVersion}"
+def springBootWeb = "org.springframework.boot:spring-boot-starter-web:${springBootVersion}"
+def springBootActuator = "org.springframework.boot:spring-boot-starter-actuator:${springBootVersion}"
+def springBootJson = "org.springframework.boot:spring-boot-starter-json:${springBootVersion}"
+def springBootJdbc = "org.springframework.boot:spring-boot-starter-jdbc:${springBootVersion}"
+def springBootAop = "org.springframework.boot:spring-boot-starter-aop:${springBootVersion}"
+def springBootProcessor = "org.springframework.boot:spring-boot-configuration-processor:${springBootVersion}"
+def springBootTest = "org.springframework.boot:spring-boot-starter-test:${springBootVersion}"
+def springBootTomcat = "org.springframework.boot:spring-boot-starter-tomcat:${springBootVersion}"
+def mybatisPlus = "com.baomidou:mybatis-plus-boot-starter:${mybatisPlusVersion}"
+def servletApi = "javax.servlet:javax.servlet-api:${servletApiVersion}"
+def validator = "org.hibernate.validator:hibernate-validator:${validatorVersion}"
+def lombok = "org.projectlombok:lombok:${lombokVersion}"
+def commonLang = "org.apache.commons:commons-lang3:${commonLangVersion}"
+def commonCodec = "commons-codec:commons-codec:${commonCodecVersion}"
+def swagger2 = "io.springfox:springfox-swagger2:${springfoxVersion}"
+def swaggerAnnotation = "io.swagger:swagger-annotations:${swaggerVersion}"
+def swaggerModel = "io.swagger:swagger-models:${swaggerVersion}"
+def swaggerUI = "com.github.xiaoymin:swagger-bootstrap-ui:${swaggerUIVersion}" // latest version with english working
+def swaggerKnifeUI = "com.github.xiaoymin:knife4j-spring-ui:${swaggerUIVersion}" // if english version has been fixed, then use new one
+def swaggerKnifeStarter = "com.github.xiaoymin:knife4j-spring-boot-starter:${swaggerUIVersion}" // if english version has been fixed, then use new one
+def jUnit = "org.junit.jupiter:junit-jupiter:${jUnitVersion}"
+// def springDoc = "org.springdoc:springdoc-openapi-ui:${springDocVersion}" TODO: For OAS3.0 if necessary
+def jSoup = "org.jsoup:jsoup:${jSoupVersion}"
+
+/** IMPLEMENT PROJECT SETTING */
+apply from: file("${rootDir}/gradle/project.gradle")
+
+subprojects {
+    group = 'lab.neobradley.simple'
+    version = "${appVersion}"
+
+    configurations {
+        compileOnly {
+            extendsFrom annotationProcessor
+        }
+    }
+
+    dependencies {
+        implementation springBoot,
+            commonLang,
+            commonCodec,
+            validator,
+            lombok,
+            swagger2,
+            swaggerAnnotation,
+            swaggerModel,
+            swaggerUI
+        compileOnly lombok
+        annotationProcessor lombok
+        testCompileOnly lombok
+        testAnnotationProcessor lombok
+    }
+}
+
+/** IMPLEMENT APPLICATION SETTING */
+project(':application') {
+    dependencies {
+        implementation springBootWeb,
+            springBootActuator,
+            springBootJson,
+            springBootJdbc,
+            springBootAop,
+            springBootProcessor,
+            springBootTomcat,
+            mybatisPlus,
+            servletApi,
+            jSoup,
+            'mysql:mysql-connector-java:8.0.25'
+        testImplementation(springBootTest) {
+            exclude module: 'junit' // default is junit4, force to junit5
+            exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
+        }
+        testImplementation jUnit
+    }
+
+    apply from: file("${rootDir}/gradle/app.gradle")
+    apply from: file("${rootDir}/gradle/conf.gradle")
+
+    jar {
+        enabled = true
+    }
+}
+
+/** IMPLEMENT PUBLISH SETTING */
+def mavenURL = hasProperty('mavenURL') ? mavenURL : null    // usage: "gradlew -PmavenURL=/path clean publish"
+
+configure(subprojects.findAll { it.name.endsWith('application') }) {
+    apply plugin: 'maven-publish'
+    if (mavenURL != null) {
+        assert project.file(mavenURL).exists()
+        publishing {
+            publications {
+                maven(MavenPublication) {
+                    from components.java
+                }
+            }
+            repositories {
+                maven { url mavenURL }
+            }
+        }
+    }
+}

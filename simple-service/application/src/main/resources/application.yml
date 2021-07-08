@@ -1,0 +1,6 @@
+spring:
+    profiles:
+        active: ${active-profile:dev}
+        include: common, env
+logging:
+    config: classpath:logback-boot.xml

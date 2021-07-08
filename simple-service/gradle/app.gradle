@@ -1,0 +1,66 @@
+// use gradlew -Penv=${env} to pass
+def env = hasProperty('env') ? env : 'dev'
+
+apply plugin: 'application'
+mainClassName = 'lab.neobradley.simple.App'
+
+distTar {
+    archiveName "${baseName}.${extension}"
+}
+
+startScripts {
+    defaultJvmOpts = ['-Dcore.webPath=APP_HOME_VAR/web', "-Dcore.appName=${project.name}", '-XX:+UseG1GC', "-Xms4G", "-Xmx4G"]
+
+    doLast {
+        windowsScript.text = windowsScript.text.replaceFirst('APP_HOME_VAR', '%APP_HOME%')
+        unixScript.text = unixScript.text.replaceFirst('APP_HOME_VAR', '\\$APP_HOME')
+    }
+}
+
+distributions {
+    distZip.enabled = false
+}
+
+run {
+    // assign all system properties to application, e.g. ./gradlew -Dkey=value :some-conf:run
+    System.properties.each { key, value ->
+        if (key != "user.dir") {
+            systemProperty key as String, value
+        }
+    }
+}
+
+afterEvaluate {
+    // split dependencies lib and app classes/bin/web to support layered docker image
+    // to cache/reuse dependencies layer
+    tasks.register('docker') {
+        group = 'distribution'
+        dependsOn installDist
+        doLast {
+            def rootGroup = parent.depth > 0 ? parent.group : project.group;
+            project.sync {
+                from(installDist.destinationDir) {
+                    exclude "lib/${rootGroup}.*.jar"
+                    exclude 'bin'
+                    exclude 'web'
+                    into('dependency')
+                }
+                from(installDist.destinationDir) {
+                    include "lib/${rootGroup}.*.jar"
+                    include 'bin/**'
+                    include 'web/**'
+                    into('app')
+                }
+                into("${buildDir}/docker/package")
+            }
+            if (project.file('docker/Dockerfile').exists()) {
+                // due to https://github.com/gradle/gradle/issues/4553, project.sync can't use preserve
+                delete project.file("${buildDir}/docker").listFiles().findAll { it.getName() != 'package' }
+                project.copy {
+                    from(project.file('docker'))
+                    into("${buildDir}/docker")
+                }
+            }
+        }
+    }
+}

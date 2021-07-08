@@ -1,0 +1,17 @@
+spring:
+    profiles: uat
+    datasource:
+        master:
+            driver-class-name: com.mysql.cj.jdbc.Driver
+            jdbcUrl: jdbc:mysql://${DB_IP}:${DB_PORT:3306}/${DB_NAME}?characterEncoding=utf8&connectTimeout=1000&socketTimeout=3000&autoReconnect=true&useUnicode=true&useSSL=false&serverTimezone=UTC
+            username: ${DB_USER}
+            password: ${DB_PASS}
+server:
+    port: 8080
+swagger:
+    enabled: true
+logging:
+    level:
+        root: warn
+    file:
+        path: /var/log/app

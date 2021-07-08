@@ -1,0 +1,114 @@
+buildscript {
+    repositories {
+        gradlePluginPortal()
+    }
+    dependencies {
+        classpath 'gradle.plugin.com.github.spotbugs.snom:spotbugs-gradle-plugin:4.7.0'
+    }
+}
+
+subprojects {
+    if (!plugins.hasPlugin(JavaPlugin)) return      // only apply to project has java plugin
+
+    apply plugin: 'checkstyle'
+    apply plugin: 'pmd'
+    apply plugin: com.github.spotbugs.snom.SpotBugsPlugin
+    apply plugin: 'jacoco'
+
+    checkstyle {
+        dependencies {
+            checkstyle 'com.puppycrawl.tools:checkstyle:8.44'
+            // https://github.com/checkstyle/checkstyle/tags
+            checkstyle 'com.github.sevntu-checkstyle:sevntu-checks:1.40.0'
+            // https://github.com/sevntu-checkstyle/sevntu.checkstyle/tags
+        }
+
+        configFile = rootProject.file('gradle/check/checkstyle.xml')
+        configProperties['configDir'] = configFile.parentFile
+
+        tasks.named('checkstyleMain').configure {
+            group = 'verification'
+            source = fileTree(projectDir) {
+                include 'conf/**/*.properties'
+                include 'src/main/java/**/*.java'
+                include 'src/main/**/*.properties'
+            }
+        }
+
+        tasks.named('checkstyleTest').configure {
+            group = 'verification'
+            source = fileTree(projectDir) {
+                include 'src/test/java/**/*.java'       // not include java files in resources
+                include 'src/test/**/*.properties'
+            }
+        }
+    }
+
+    pmd {
+        ruleSets = []
+        ruleSetFiles = rootProject.files('gradle/check/pmd.xml')
+        toolVersion = '6.36.0'
+        // https://github.com/pmd/pmd/tags
+        consoleOutput = true
+        incrementalAnalysis = true
+
+        tasks.withType(Pmd).configureEach {
+            group = 'verification'
+        }
+    }
+
+    spotbugs {
+        dependencies {
+            spotbugsPlugins 'com.mebigfatguy.sb-contrib:sb-contrib:7.4.7'
+            // https://github.com/mebigfatguy/fb-contrib/tags
+        }
+        sourceSets {
+            // we define `main` sourceSet here, so SpotBugs Gradle Plugin generates `spotbugsMain` task
+            main {
+                java.srcDirs = ['src/main/java']
+            }
+        }
+
+        reportLevel = 'low'
+        includeFilter = rootProject.file('gradle/check/spotbugs.xml')
+        toolVersion = '4.3.0'
+        // https://github.com/spotbugs/spotbugs/tags
+
+        def spotbugsReport = tasks.register('spotbugsReport') {
+            group = 'verification'
+            doLast {
+                def report = file("${buildDir}/reports/spotbugs/main.text")
+                if (report.exists()) logger.error(report.text)
+                report = file("${buildDir}/reports/spotbugs/test.text")
+                if (report.exists()) logger.error(report.text)
+            }
+        }
+
+        tasks.withType(com.github.spotbugs.snom.SpotBugsTask).configureEach { task ->
+            group = 'verification'
+            extraArgs = ['-longBugCodes']
+            reports {
+                xml.enabled = false
+                text.enabled = true
+            }
+            task.finalizedBy(spotbugsReport)
+        }
+    }
+
+    jacoco {
+        toolVersion = '0.8.7'
+        // https://github.com/jacoco/jacoco/tags
+
+        tasks.named('jacocoTestReport').configure {
+            // to generate cross sub project report, run: gradlew test && gradlew jacocoTestReport
+            executionData.setFrom(fileTree(rootDir).include('build/**/jacoco/test.exec'))
+
+            reports {
+                xml.enabled = true
+                xml.destination rootProject.file("${buildDir}/reports/jacoco/report.xml")
+                html.enabled = true
+                csv.enabled = false
+            }
+        }
+    }
+}

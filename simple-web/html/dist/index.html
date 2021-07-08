@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Index</title>
+</head>
+<body>
+<div>
+    <h1>Test Page</h1>
+    <div id="demo"></div>
+</div>
+</body>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"
+        integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+<script>
+    $.get('/prod-api/v1/hello-world/', function (data) {
+        $('#demo').text(data.data);
+    }).fail(function () {
+        $('#demo').text('Service not available');
+    });
+</script>
+</html>

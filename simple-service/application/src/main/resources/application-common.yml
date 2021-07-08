@@ -1,0 +1,11 @@
+# Actuator
+management:
+    endpoints:
+        web:
+            exposure:
+                include: health, info, metrics, threaddump
+# MyBatis-Plus
+mybatis-plus:
+    configuration:
+        map-underscore-to-camel-case: true
+        auto-mapping-behavior: full

@@ -1,0 +1,81 @@
+defaultTasks 'clean', 'build'
+
+apply plugin: 'io.spring.dependency-management'
+
+allprojects { dir ->
+    apply plugin: 'idea'
+    idea.module.inheritOutputDirs = true
+    if (dir.name.endsWith("application")) {
+        apply plugin: 'org.springframework.boot'
+        apply plugin: 'io.spring.dependency-management'
+        apply plugin: 'war'
+        apply from: file("${rootDir}/gradle/docs.gradle")
+    }
+    repositories {
+        mavenLocal()
+        mavenCentral()
+    }
+}
+
+subprojects {
+    if (!childProjects.isEmpty()) return    // ignore parent project
+
+    apply plugin: 'java'
+
+    sourceCompatibility = JavaVersion.VERSION_11
+    targetCompatibility = JavaVersion.VERSION_11
+
+    tasks.withType(JavaCompile).configureEach {
+        options.encoding = 'UTF-8'
+        options.compilerArgs += ['-Xlint:none', '-nowarn']
+    }
+
+    buildDir = "${rootDir}/build/${rootDir.relativePath(projectDir)}"
+
+    tasks.named('test') {
+        useJUnitPlatform()
+        failFast = true
+        testLogging.showStandardStreams = true
+        testLogging.exceptionFormat 'full'
+    }
+
+    tasks.named('jar') {
+        // put parent name in final jar name, to resolve collision of child projects with same name under different parents
+        if (parent.depth > 0) {
+            archiveBaseName = "${parent.name}-${archiveBaseName.get()}"
+        }
+    }
+
+    tasks.register('mkdir') {
+        group = 'build setup'
+        description = 'Create project directories.'
+        doLast {
+            sourceSets*.java.srcDirs*.each { it.mkdirs() }
+            sourceSets*.resources.srcDirs*.each { it.mkdirs() }
+        }
+    }
+
+    afterEvaluate {
+        // update group on afterEvaluate since the project.gradle usually included in the first line of project build.gradle, which project.group is not assigned yet
+        if (parent.depth > 0) {
+            group = "${group}.${parent.name}"
+            // append parent into group, let child projects with same name under different parent have different artifactId
+        }
+
+        tasks.withType(Jar).configureEach {
+            manifest {
+                attributes 'Implementation-Title': project.name,
+                    'Implementation-Version': project.version,
+                    'Created-By': "${System.getProperty('java.version')} (${System.getProperty('java.vendor')})",
+                    'Built-With': "gradle ${project.gradle.gradleVersion}",
+                    'Build-Time': Instant.now().toString()
+            }
+        }
+    }
+}
+
+apply from: file("${rootDir}/gradle/check.gradle")
+
+tasks.named('wrapper') {
+    gradleVersion = '7.1'
+}

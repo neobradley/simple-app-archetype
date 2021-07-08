@@ -1,0 +1,12 @@
+// use gradlew -Penv=${env} to pass
+def env = hasProperty('env') ? env : 'dev'
+println "Current Env : ${env}"
+
+processResources {
+    if (env != null) {
+        assert project.file("conf/${env}/resources").exists()
+        inputs.dir project.file("conf/${env}/resources")
+        from "conf/${env}/resources"
+        duplicatesStrategy 'include'
+    }
+}

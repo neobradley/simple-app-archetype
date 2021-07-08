@@ -1,0 +1,68 @@
+version: '3.8'
+services:
+  simple-mysql:
+    container_name: simple-mysql
+    image: mysql:5.7
+    build:
+      context: ./sql
+    ports:
+      - "3306:3306"
+    networks:
+      - neobradley-proxy
+    volumes:
+      - mysql-data:/var/lib/mysql
+    command: [
+        'mysqld',
+        '--innodb-buffer-pool-size=80M',
+        '--character-set-server=utf8mb4',
+        '--collation-server=utf8mb4_unicode_ci',
+        '--default-time-zone=+8:00',
+        '--lower-case-table-names=1'
+    ]
+    environment:
+      MYSQL_DATABASE: 'neobradley-simple'
+      MYSQL_ROOT_PASSWORD: neobradleypass
+
+  simple-service:
+    container_name: simple-service
+    build:
+      context: ./simple-service/build/application/docker
+    ports:
+      - "8080:8080"
+    networks:
+      - neobradley-proxy
+    environment:
+      active-profile: dev
+      DB_IP: simple-mysql
+      DB_PORT: 3306
+      DB_NAME: neobradley-simple
+      DB_USER: root
+      DB_PASS: neobradleypass
+    links:
+      - simple-mysql
+    depends_on:
+      - simple-mysql
+    restart: on-failure
+
+  simple-web:
+    container_name: simple-web
+    image: nginx
+    build:
+      context: ./simple-web
+    ports:
+      - "80:80"
+    networks:
+      - neobradley-proxy
+    volumes:
+      - ./simple-web/conf/nginx.conf:/etc/nginx/nginx.conf
+    links:
+      - simple-service
+    depends_on:
+      - simple-service
+
+volumes:
+  mysql-data:
+
+networks:
+  neobradley-proxy:
+    name: neobradley-net

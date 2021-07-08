@@ -1,0 +1,21 @@
+buildscript {
+    repositories {
+        gradlePluginPortal()
+    }
+    dependencies {
+        classpath 'gradle.plugin.io.github.lhotari:swagger2markup-gradle-plugin:1.3.3.1'
+    }
+}
+
+apply plugin: 'idea'
+
+
+project(":application") {
+    apply plugin: io.github.swagger2markup.Swagger2MarkupPlugin
+    convertSwagger2markup {
+        swaggerInput "http://localhost:8080/v2/api-docs"
+        outputDir file("${rootDir}/doc/api/auto-gen")
+        config = ['swagger2markup.markupLanguage': 'MARKDOWN',
+                  'swagger2markup.pathsGroupedBy': 'TAGS']
+    }
+}
