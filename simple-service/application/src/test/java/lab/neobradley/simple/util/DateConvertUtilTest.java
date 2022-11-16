@@ -12,7 +12,7 @@ import java.util.Map;
 
 @Slf4j
 @SpringBootTest
-public class DateConvertUtilTest {
+class DateConvertUtilTest {
 
 //    @Test
 //    public void getDateInterval() {
@@ -25,7 +25,7 @@ public class DateConvertUtilTest {
 //    }
 
     @Test
-    public void convertDateRangeToDailyRange() {
+    void convertDateRangeToDailyRange() {
         DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE;
         LocalDateTime minusDays = LocalDateTime.now().minusDays(3).minusMinutes(5);
         List<Map<Date, Date>> dateInterval = DateConvertUtil.convertDateRangeToDailyRange(formatter.format(minusDays), formatter.format(LocalDateTime.now()));
@@ -35,7 +35,7 @@ public class DateConvertUtilTest {
     }
 
     @Test
-    public void convertDateRangeToDailyRangeWithTime() {
+    void convertDateRangeToDailyRangeWithTime() {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern(DateConvertUtil.DATE_TIME_FORMAT);
         LocalDateTime minusDays = LocalDateTime.now().minusDays(3).minusMinutes(5);
         List<Map<Date, Date>> dateInterval = DateConvertUtil.convertDateRangeToDailyRange(formatter.format(minusDays), formatter.format(LocalDateTime.now()));

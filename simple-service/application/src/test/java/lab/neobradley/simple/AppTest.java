@@ -8,20 +8,20 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 @Slf4j
 @SpringBootTest
-public class AppTest {
+class AppTest {
 
     @BeforeEach
-    public void init() {
+    void init() {
         log.info("===== TEST BEGIN =====");
     }
 
     @AfterEach
-    public void cleanup() {
+    void cleanup() {
         log.info("===== TEST ENDED =====");
     }
 
     @Test
-    public void contextLoaded() {
+    void contextLoaded() {
         log.info("contextLoaded");
     }
 }

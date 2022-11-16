@@ -9,7 +9,6 @@ allprojects { dir ->
         apply plugin: 'org.springframework.boot'
         apply plugin: 'io.spring.dependency-management'
         apply plugin: 'war'
-        apply from: file("${rootDir}/gradle/docs.gradle")
     }
     repositories {
         mavenLocal()

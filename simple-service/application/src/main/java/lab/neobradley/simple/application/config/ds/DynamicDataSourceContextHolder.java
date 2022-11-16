@@ -42,6 +42,10 @@ public class DynamicDataSourceContextHolder {
         CONTEXT_HOLDER.remove();
     }
 
+    public static boolean deleteDataSourceKey(String key) {
+        return DATA_SOURCE_KEYS.remove(key);
+    }
+
     /**
      * 判断是否包含数据源
      *

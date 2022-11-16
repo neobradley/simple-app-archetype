@@ -6,12 +6,27 @@ spring:
             jdbcUrl: jdbc:mysql://${DB_IP:ubuntu2004.wsl}:${DB_PORT:3306}/${DB_NAME:neobradley-simple}?characterEncoding=utf8&connectTimeout=1000&socketTimeout=3000&autoReconnect=true&useUnicode=true&useSSL=false&serverTimezone=UTC
             username: ${DB_USER:root}
             password: ${DB_PASS:neobradleypass}
+
+    autoconfigure:
+        exclude:
+            - org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
+            - org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration
+            - org.springframework.boot.autoconfigure.jdbc.DataSourceTransactionManagerAutoConfiguration
 server:
     port: 8080
-swagger:
-    enabled: true
+
 logging:
     level:
         root: info
     file:
         path: /var/log/app
+
+springdoc:
+    swagger-ui:
+        path: /swagger-ui.html
+    api-docs:
+        path: /v3/api-docs
+    group-configs:
+        -   group: 'default'
+            paths-to-match: '/**'
+            packages-to-scan: lab.neobradley.simple.application.controller

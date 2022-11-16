@@ -3,7 +3,7 @@ buildscript {
         gradlePluginPortal()
     }
     dependencies {
-        classpath 'gradle.plugin.com.github.spotbugs.snom:spotbugs-gradle-plugin:4.7.0'
+        classpath 'com.github.spotbugs.snom:spotbugs-gradle-plugin:5.0.7'
     }
 }
 
@@ -17,9 +17,9 @@ subprojects {
 
     checkstyle {
         dependencies {
-            checkstyle 'com.puppycrawl.tools:checkstyle:9.2.1'
+            checkstyle 'com.puppycrawl.tools:checkstyle:10.4'
             // https://github.com/checkstyle/checkstyle/tags
-            checkstyle 'com.github.sevntu-checkstyle:sevntu-checks:1.40.0'
+            checkstyle 'com.github.sevntu-checkstyle:sevntu-checks:1.42.0'
             // https://github.com/sevntu-checkstyle/sevntu.checkstyle/tags
         }
 
@@ -47,7 +47,7 @@ subprojects {
     pmd {
         ruleSets = []
         ruleSetFiles = rootProject.files('gradle/check/pmd.xml')
-        toolVersion = '6.41.0'
+        toolVersion = '6.51.0'
         // https://github.com/pmd/pmd/tags
         consoleOutput = true
         incrementalAnalysis = true
@@ -71,7 +71,7 @@ subprojects {
 
         reportLevel = 'low'
         includeFilter = rootProject.file('gradle/check/spotbugs.xml')
-        toolVersion = '4.5.2'
+        toolVersion = '4.7.3'
         // https://github.com/spotbugs/spotbugs/tags
 
         def spotbugsReport = tasks.register('spotbugsReport') {
@@ -88,7 +88,6 @@ subprojects {
             group = 'verification'
             extraArgs = ['-longBugCodes']
             reports {
-                xml.enabled = false
                 text.enabled = true
             }
             task.finalizedBy(spotbugsReport)
@@ -96,7 +95,7 @@ subprojects {
     }
 
     jacoco {
-        toolVersion = '0.8.7'
+        toolVersion = '0.8.8'
         // https://github.com/jacoco/jacoco/tags
 
         tasks.named('jacocoTestReport').configure {

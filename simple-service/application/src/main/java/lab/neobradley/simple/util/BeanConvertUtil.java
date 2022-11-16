@@ -36,7 +36,6 @@ public class BeanConvertUtil {
         if (target == null) return null;
 
         mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        if (target == null) return null;
         try {
             return mapper.readValue(mapper.writeValueAsString(target), mapper.getTypeFactory().constructCollectionType(List.class, cls));
         } catch (IOException e) {

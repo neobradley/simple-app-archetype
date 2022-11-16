@@ -2,5 +2,11 @@ spring:
     profiles:
         active: ${active-profile:dev}
         include: common, env
+    mvc:
+        pathmatch:
+            # 配置策略
+            matching-strategy: ant-path-matcher
+
 logging:
     config: classpath:logback-boot.xml
+
